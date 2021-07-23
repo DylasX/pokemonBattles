@@ -8,15 +8,17 @@ import {
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-import { PokemonService } from './pokemon.service';
 import { ConfigService } from '@nestjs/config';
+import { PokemonService } from './pokemon.service';
 
 @WebSocketGateway()
 export class PokemonGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() server: Server;
+
   private logger: Logger = new Logger('PokemonGateway');
+
   private connectedUsers = {};
 
   constructor(
@@ -39,21 +41,40 @@ export class PokemonGateway
       ) {
         try {
           const res = await this.pokemonService.getPokemon(
-            data.pokemon.toString(),
+            data.pokemon?.toString(),
           );
           res.image = `${this.configService.get('REPO_IMAGES')}${
             data.pokemon
           }.png`;
           client.pokemon = res;
           client.join(data.room);
-          client.emit('joinedRoom', {
-            room: client.room,
-            pokemon: client.pokemon,
-          });
-          if (!this.connectedUsers[client.room]) {
+
+          let previousUser = null;
+          if (
+            !this.connectedUsers[client.room] ||
+            !this.connectedUsers[client.room].length
+          ) {
             this.connectedUsers[client.room] = [client];
+            client.emit('joinedRoom', {
+              room: client.room,
+              user: { pokemon: client.pokemon, userId: client.id },
+            });
           } else {
+            previousUser = {
+              pokemon: this.connectedUsers[client.room][0].pokemon,
+              userId: this.connectedUsers[client.room][0].id,
+            };
             this.connectedUsers[client.room].push(client);
+            client.emit('joinedRoom', {
+              room: client.room,
+              user: { pokemon: client.pokemon, userId: client.id },
+              previousUser,
+            });
+            this.connectedUsers[client.room][0].emit('newOpponent', {
+              pokemon: client.pokemon,
+              userId: client.id,
+              room: client.room,
+            });
           }
         } catch (error) {
           console.error(error);
@@ -69,13 +90,22 @@ export class PokemonGateway
 
   @SubscribeMessage('leaveRoom')
   handleRoomLeave(client: Socket) {
-    client.emit('leftRoom', client.room);
     if (this.connectedUsers[client.room]) {
+      let removedClient = null;
       this.connectedUsers[client.room] = this.connectedUsers[
         client.room
-      ].filter((el) => el.id !== client.id);
+      ].filter((el) => {
+        removedClient = {
+          id: client.id,
+          pokemon: client.pokemon,
+          room: client.room,
+        };
+        return el.id !== client.id;
+      });
+      this.server.to(client.room).emit('leftRoom', removedClient);
     }
   }
+
   afterInit(server: Server) {
     this.logger.log('Init');
   }
@@ -83,9 +113,18 @@ export class PokemonGateway
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
     if (this.connectedUsers[client.room]) {
+      let removedClient = null;
       this.connectedUsers[client.room] = this.connectedUsers[
         client.room
-      ].filter((el) => el.id !== client.id);
+      ].filter((el) => {
+        removedClient = {
+          id: client.id,
+          pokemon: client.pokemon,
+          room: client.room,
+        };
+        return el.id !== client.id;
+      });
+      this.server.to(client.room).emit('leftRoom', removedClient);
     }
   }
 
