@@ -5,6 +5,7 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  WsResponse,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
@@ -26,9 +27,14 @@ export class PokemonGateway
     private pokemonService: PokemonService,
   ) {}
 
-  @SubscribeMessage('pokemonFight')
-  handleMessage(client: Socket, message: { sender: string; message: string }) {
-    this.server.to(client.room).emit('chatToClient', message);
+  @SubscribeMessage('msgToServer')
+  handleMessage(
+    client: Socket,
+    message: { name: string; text: string },
+  ): Promise<WsResponse<any>> {
+    if (client.room) {
+      return this.server.to(client.room).emit('msgToClient', message);
+    }
   }
 
   @SubscribeMessage('joinRoom')
@@ -40,16 +46,23 @@ export class PokemonGateway
         this.connectedUsers[data.room]?.length < 2
       ) {
         try {
+          //Get general data
           const res = await this.pokemonService.getPokemon(
-            data.pokemon?.toString(),
+            data.pokemon?.id.toString(),
           );
           res.image = `${this.configService.get('REPO_IMAGES')}${
-            data.pokemon
+            data.pokemon.id
           }.png`;
-          res.moves = this.pokemonService.generateAbilities(res);
           client.pokemon = res;
+
+          //Get data abilities
+          client.pokemon.moves = await Promise.all(
+            this.pokemonService.generateMoves(data.pokemon.selectedMoves),
+          );
+
           client.join(data.room);
 
+          //Check previous data
           let previousUser = null;
           if (
             !this.connectedUsers[client.room] ||

@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Websockets Client</title>
     <link href="/styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
     <link href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.js"></script>
@@ -42,13 +43,25 @@
                                 margin: 50px;
                                 justify-content: space-evenly;">
                                 <li v-for="pokemonIndex of pokemon.moves" style="list-style: none;">
-                                    <button v-bind:data-ability="pokemonIndex.move">{{pokemonIndex.move}}</button>
+                                    <button  :disabled="isDisabled" v-bind:data-ability="pokemonIndex.name">{{pokemonIndex.name}}- PP: {{pokemonIndex.pp}}</button>
                                 </li>
                             </ul>
                         </div>
                     </li>
                 </ul>
             </p>
+            <div class="card">
+                <div id="messages" class="card-block">
+                    <ul>
+                        <li v-for="message of messages">{{ message.name }}: {{ message.text }}</li>
+                    </ul>
+                </div>
+            </div>
+            <br>
+            <label for="textarea">Message:</label>
+            <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
+            <br>
+            <button id="send" class="btn" @click.prevent="sendMessage">Send</button>
             <!-- /Tabs -->
         </section>
     </main>
@@ -66,7 +79,15 @@
                 socket: { fight: null },
                 alerts: [],
                 activeRoom: 'general',
-                joined: false
+                joined: false,
+                ready: false,
+                messages: [],
+            },
+            computed: {
+                isDisabled() {
+                    // you can  check your form is filled or not here.
+                    return !this.ready;
+                },
             },
             methods: {
                 sendChatMessage() {
@@ -87,16 +108,35 @@
                     if (this.joined) {
                         this.socket.pokemon.emit('leaveRoom');
                     } else {
-                        this.socket.pokemon.emit('joinRoom', {room: this.activeRoom, pokemon: Math.ceil(Math.random() * 150 + 1), });
+                        this.socket.pokemon.emit('joinRoom', {room: this.activeRoom, pokemon: {id: Math.ceil(Math.random() * 150 + 1), selectedMoves: [1,2,3,4]}, });
                     }
+                },
+                sendMessage() {
+                if(this.validateInput()) {
+                    const message = {
+                        name: this.username,
+                        text: this.text,
+                    };
+                    this.socket.pokemon.emit('msgToServer', message);
+                    this.text = '';
                 }
+                },
+                receivedMessage(message) {
+                    this.messages.push(message)
+                },
+                validateInput() {
+                    return this.username.length > 0 && this.text.length > 0
+                },
             },
             created() {
                 this.username = prompt('Enter your username:');
 
                 this.socket.pokemon = io('http://localhost:3000/');
-                this.socket.pokemon.on('pokemonFight', (msg) => {
-                    this.receiveChatMessage(msg);
+
+                //TODO: divide sockets pokemon and chat
+                this.socket.pokemon.on('msgToClient', (message) => {
+                    console.log(message);
+                    this.receivedMessage(message)
                 });
                 this.socket.pokemon.on('connect', () => {
                     this.toggleRoomMembership();
@@ -108,16 +148,19 @@
                     this.id = data.user.userId
                     if(data.previousUser){
                         this.pokemons[data.room].push(data.previousUser.pokemon)
+                        this.ready = true;
                     }
                 });
                 this.socket.pokemon.on('newOpponent', (data) => {
                     console.dir(data)
                     this.pokemons[data.room].push(data.pokemon)
                     console.dir(this.pokemons[data.room])
+                    this.ready = true
                 });
                 this.socket.pokemon.on('leftRoom', (client) => {
                     this.joined = false;
                     this.pokemons[client.room] = this.pokemons[client.room].filter((el) => el.id !== client.pokemon.id)
+                    this.ready = false
                 });
 
             }
@@ -128,6 +171,10 @@
         ul li:first-child {
             color: red;
             font-weight: bold;
+        }
+        #messages{
+            height:300px;
+            overflow-y: scroll;
         }
     </style>
 </body>

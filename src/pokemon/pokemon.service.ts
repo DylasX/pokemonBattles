@@ -20,30 +20,16 @@ export class PokemonService {
       .toPromise();
   }
 
-  generateAbilities(pokemon: Pokemon): any[] {
+  generateMoves(selectedMoves: number[]): any {
     //TODO: Change this to allow user to choose moves
     //MOCK FUNCTION ABILITIES
-    return [
-      {
-        move: pokemon.moves[Math.floor(Math.random() * pokemon.moves.length)]
-          .move.name,
-        power: Math.floor(Math.random() * 10),
-      },
-      {
-        move: pokemon.moves[Math.floor(Math.random() * pokemon.moves.length)]
-          .move.name,
-        power: Math.floor(Math.random() * 10),
-      },
-      {
-        move: pokemon.moves[Math.floor(Math.random() * pokemon.moves.length)]
-          .move.name,
-        power: Math.floor(Math.random() * 10),
-      },
-      {
-        move: pokemon.moves[Math.floor(Math.random() * pokemon.moves.length)]
-          .move.name,
-        power: Math.floor(Math.random() * 10),
-      },
-    ];
+    const urlMoves = `${this.configService.get('PUBLIC_API_URL')}/move/`;
+    const moves = selectedMoves.map((el) => {
+      return this.http
+        .get<any>(`${urlMoves}${el}/`)
+        .pipe(map((res: AxiosResponse) => res.data))
+        .toPromise();
+    });
+    return moves;
   }
 }

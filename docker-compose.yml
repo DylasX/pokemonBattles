@@ -1,0 +1,21 @@
+version: '3.7'
+# all the containers have to declare inside services
+services:
+  # Redis service
+  redis:
+    # image name
+    image: redis:latest
+    # container name
+    container_name: redisPokemon
+    # execute the command once start redis container
+    command: ['redis-server', '--bind', 'redis', '--port', '6379']
+    # save (persist) data and also to share data between containers
+    volumes:
+      - red_data:/var/lib/redis
+    # redis port, this is take value from env file
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
+      # application network, each container for a service joins this network
+# save (persist) data
+volumes:
+  red_data: {}
