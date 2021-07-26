@@ -46,6 +46,7 @@ export class PokemonGateway
           res.image = `${this.configService.get('REPO_IMAGES')}${
             data.pokemon
           }.png`;
+          res.moves = this.pokemonService.generateAbilities(res);
           client.pokemon = res;
           client.join(data.room);
 

@@ -9,7 +9,7 @@ export interface Pokemon {
   image: string;
   is_default: boolean;
   location_area_encounters: string;
-  moves: [];
+  moves: any[];
   name: string;
   order: number;
   past_types: [];

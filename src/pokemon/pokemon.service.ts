@@ -19,4 +19,31 @@ export class PokemonService {
       .pipe(map((res: AxiosResponse) => res.data))
       .toPromise();
   }
+
+  generateAbilities(pokemon: Pokemon): any[] {
+    //TODO: Change this to allow user to choose moves
+    //MOCK FUNCTION ABILITIES
+    return [
+      {
+        move: pokemon.moves[Math.floor(Math.random() * pokemon.moves.length)]
+          .move.name,
+        power: Math.floor(Math.random() * 10),
+      },
+      {
+        move: pokemon.moves[Math.floor(Math.random() * pokemon.moves.length)]
+          .move.name,
+        power: Math.floor(Math.random() * 10),
+      },
+      {
+        move: pokemon.moves[Math.floor(Math.random() * pokemon.moves.length)]
+          .move.name,
+        power: Math.floor(Math.random() * 10),
+      },
+      {
+        move: pokemon.moves[Math.floor(Math.random() * pokemon.moves.length)]
+          .move.name,
+        power: Math.floor(Math.random() * 10),
+      },
+    ];
+  }
 }

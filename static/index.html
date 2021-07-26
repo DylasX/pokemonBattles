@@ -36,6 +36,15 @@
                         <div>
                             <h2 style="text-transform: capitalize;" >{{ pokemon?.name }}</h2>
                             <img v-bind:src="pokemon?.image" width="150px" alt="" srcset="">
+                            <ul style="display: flex;
+                                flex-direction: row;
+                                flex: 1;
+                                margin: 50px;
+                                justify-content: space-evenly;">
+                                <li v-for="pokemonIndex of pokemon.moves" style="list-style: none;">
+                                    <button v-bind:data-ability="pokemonIndex.move">{{pokemonIndex.move}}</button>
+                                </li>
+                            </ul>
                         </div>
                     </li>
                 </ul>
