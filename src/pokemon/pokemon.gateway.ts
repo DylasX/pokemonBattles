@@ -1,5 +1,7 @@
 import {
   SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
   WebSocketGateway,
   OnGatewayInit,
   WebSocketServer,
@@ -20,8 +22,6 @@ export class PokemonGateway
 
   private logger: Logger = new Logger('PokemonGateway');
 
-  private connectedUsers = {};
-
   constructor(
     private configService: ConfigService,
     private pokemonService: PokemonService,
@@ -38,86 +38,62 @@ export class PokemonGateway
   }
 
   @SubscribeMessage('joinRoom')
-  async handleRoomJoin(client: Socket, data: any) {
-    if (data.room && data.pokemon) {
+  async handleRoomJoin(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: any,
+  ) {
+    if (
+      data.room &&
+      data.pokemon &&
+      Object.keys(this.server.of('/').in(data.room).adapter.rooms).length < 3
+    ) {
+      client.join(data.room);
       client.room = data.room;
-      if (
-        !this.connectedUsers[data.room] ||
-        this.connectedUsers[data.room]?.length < 2
-      ) {
-        try {
-          //Get general data
-          const res = await this.pokemonService.getPokemon(
-            data.pokemon?.id.toString(),
-          );
-          res.image = `${this.configService.get('REPO_IMAGES')}${
-            data.pokemon.id
-          }.png`;
-          client.pokemon = res;
+      try {
+        //Get general data
+        const res = await this.pokemonService.getPokemon(
+          data.pokemon?.id.toString(),
+        );
+        res.image = `${this.configService.get('REPO_IMAGES')}${
+          data.pokemon.id
+        }.png`;
+        client.pokemon = res;
 
-          //Get data abilities
-          client.pokemon.moves = await Promise.all(
-            this.pokemonService.generateMoves(data.pokemon.selectedMoves),
-          );
+        //Get data abilities
+        client.pokemon.moves = await Promise.all(
+          this.pokemonService.generateMoves(data.pokemon.selectedMoves),
+        );
 
-          client.join(data.room);
+        client.broadcast.to(data.room).emit('newOpponent', {
+          room: client.room,
+          user: { pokemon: client.pokemon, userId: client.id },
+        });
 
-          //Check previous data
-          let previousUser = null;
-          if (
-            !this.connectedUsers[client.room] ||
-            !this.connectedUsers[client.room].length
-          ) {
-            this.connectedUsers[client.room] = [client];
-            client.emit('joinedRoom', {
-              room: client.room,
-              user: { pokemon: client.pokemon, userId: client.id },
-            });
-          } else {
-            previousUser = {
-              pokemon: this.connectedUsers[client.room][0].pokemon,
-              userId: this.connectedUsers[client.room][0].id,
-            };
-            this.connectedUsers[client.room].push(client);
-            client.emit('joinedRoom', {
-              room: client.room,
-              user: { pokemon: client.pokemon, userId: client.id },
-              previousUser,
-            });
-            this.connectedUsers[client.room][0].emit('newOpponent', {
-              pokemon: client.pokemon,
-              userId: client.id,
-              room: client.room,
-            });
-          }
-        } catch (error) {
-          console.error(error);
-          this.logger.error(`Invalid pokemon with Id: ${data.pokemon}`);
-        }
-      } else {
-        this.logger.error('Arena full');
+        return client.emit('joinedRoom', {
+          room: client.room,
+          user: { pokemon: client.pokemon, userId: client.id },
+        });
+      } catch (error) {
+        console.error(error);
+        this.logger.error(`Invalid pokemon with Id: ${data.pokemon}`);
       }
     } else {
-      this.logger.error('No body supplied');
+      this.logger.error('Full room or body no supplied');
     }
+  }
+
+  @SubscribeMessage('previousPokemon')
+  handlePreviousPokemon(client: Socket, data) {
+    const payload = {
+      room: client.room,
+      user: { pokemon: client.pokemon, userId: client.id },
+    };
+    client.broadcast.to(data.room).emit('previousOpponent', payload);
   }
 
   @SubscribeMessage('leaveRoom')
   handleRoomLeave(client: Socket) {
-    if (this.connectedUsers[client.room]) {
-      let removedClient = null;
-      this.connectedUsers[client.room] = this.connectedUsers[
-        client.room
-      ].filter((el) => {
-        removedClient = {
-          id: client.id,
-          pokemon: client.pokemon,
-          room: client.room,
-        };
-        return el.id !== client.id;
-      });
-      this.server.to(client.room).emit('leftRoom', removedClient);
-    }
+    this.server.to(client.room).emit('leftRoom', client);
   }
 
   afterInit(server: Server) {
@@ -126,20 +102,11 @@ export class PokemonGateway
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
-    if (this.connectedUsers[client.room]) {
-      let removedClient = null;
-      this.connectedUsers[client.room] = this.connectedUsers[
-        client.room
-      ].filter((el) => {
-        removedClient = {
-          id: client.id,
-          pokemon: client.pokemon,
-          room: client.room,
-        };
-        return el.id !== client.id;
-      });
-      this.server.to(client.room).emit('leftRoom', removedClient);
-    }
+    this.server.to(client.room).emit('leftRoom', {
+      room: client.room,
+      pokemon: client.pokemon,
+      userId: client.id,
+    });
   }
 
   handleConnection(client: Socket, ...args: any[]) {

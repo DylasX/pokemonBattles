@@ -3,6 +3,7 @@ import { Module, HttpModule } from '@nestjs/common';
 // import { AppService } from './app.service';
 import { PokemonGateway } from './pokemon/pokemon.gateway';
 import { PokemonService } from './pokemon/pokemon.service';
+import { EventsGateway } from './events/events.gateway';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 
@@ -21,6 +22,6 @@ import * as Joi from 'joi';
     }),
   ],
   controllers: [],
-  providers: [PokemonGateway, PokemonService],
+  providers: [PokemonGateway, PokemonService, EventsGateway],
 })
 export class AppModule {}

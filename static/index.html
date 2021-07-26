@@ -11,7 +11,7 @@
     <link href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
 </head>
 <body>
     <main id="v-app">
@@ -131,7 +131,8 @@
             created() {
                 this.username = prompt('Enter your username:');
 
-                this.socket.pokemon = io('http://localhost:3000/');
+                this.socket.pokemon = io('http://localhost:3000/', 
+                {        transports: ['websocket', 'polling']            });
 
                 //TODO: divide sockets pokemon and chat
                 this.socket.pokemon.on('msgToClient', (message) => {
@@ -142,19 +143,21 @@
                     this.toggleRoomMembership();
                 });
                 this.socket.pokemon.on('joinedRoom', (data) => {
-                    this.joined = true;
+                    console.dir(data)
                     this.pokemons[data.room] = []
                     this.pokemons[data.room].push(data.user.pokemon)
                     this.id = data.user.userId
-                    if(data.previousUser){
-                        this.pokemons[data.room].push(data.previousUser.pokemon)
-                        this.ready = true;
-                    }
+                   
                 });
                 this.socket.pokemon.on('newOpponent', (data) => {
                     console.dir(data)
-                    this.pokemons[data.room].push(data.pokemon)
+                    this.pokemons[data.room].push(data.user.pokemon)
                     console.dir(this.pokemons[data.room])
+                    this.socket.pokemon.emit('previousPokemon', data);
+                    this.ready = true
+                });
+                this.socket.pokemon.on('previousOpponent', (data) => {
+                    this.pokemons[data.room].push(data.user.pokemon)
                     this.ready = true
                 });
                 this.socket.pokemon.on('leftRoom', (client) => {
