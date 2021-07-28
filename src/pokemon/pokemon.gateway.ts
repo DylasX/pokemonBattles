@@ -27,16 +27,6 @@ export class PokemonGateway
     private pokemonService: PokemonService,
   ) {}
 
-  @SubscribeMessage('msgToServer')
-  handleMessage(
-    client: Socket,
-    message: { name: string; text: string },
-  ): Promise<WsResponse<any>> {
-    if (client.room) {
-      return this.server.to(client.room).emit('msgToClient', message);
-    }
-  }
-
   @SubscribeMessage('joinRoom')
   async handleRoomJoin(
     @ConnectedSocket() client: Socket,
@@ -83,17 +73,21 @@ export class PokemonGateway
   }
 
   @SubscribeMessage('previousPokemon')
-  handlePreviousPokemon(client: Socket, data) {
+  handlePreviousPokemon(client: Socket) {
     const payload = {
       room: client.room,
       user: { pokemon: client.pokemon, userId: client.id },
     };
-    client.broadcast.to(data.room).emit('previousOpponent', payload);
+    client.broadcast.to(client.room).emit('previousOpponent', payload);
   }
 
   @SubscribeMessage('leaveRoom')
   handleRoomLeave(client: Socket) {
-    this.server.to(client.room).emit('leftRoom', client);
+    this.server.to(client.room).emit('leftRoom', {
+      room: client.room,
+      pokemon: client.pokemon,
+      userId: client.id,
+    });
   }
 
   afterInit(server: Server) {

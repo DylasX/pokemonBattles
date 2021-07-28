@@ -1,9 +1,6 @@
 import { Module, HttpModule } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
-import { PokemonGateway } from './pokemon/pokemon.gateway';
-import { PokemonService } from './pokemon/pokemon.service';
-import { EventsGateway } from './events/events.gateway';
+import { PokemonModule } from './pokemon/pokemon.module';
+import { ChatModule } from './events/chat.module';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 
@@ -20,8 +17,10 @@ import * as Joi from 'joi';
         REDIS_PORT: Joi.number().required(),
       }),
     }),
+    PokemonModule,
+    ChatModule,
   ],
   controllers: [],
-  providers: [PokemonGateway, PokemonService, EventsGateway],
+  providers: [],
 })
 export class AppModule {}

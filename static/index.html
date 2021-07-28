@@ -32,7 +32,7 @@
                             flex-direction: row;
                             flex: 1;
                             margin: 50px;
-                            justify-content: space-evenly;">
+                            justify-content: space-evenly;" class="pokemon-list">
                     <li v-for="pokemon of pokemons[activeRoom]" style="list-style: none;">
                         <div>
                             <h2 style="text-transform: capitalize;" >{{ pokemon?.name }}</h2>
@@ -76,7 +76,7 @@
                 pokemons: {
                     general: [],
                 },
-                socket: { fight: null },
+                socket: { fight: null, chat:null },
                 alerts: [],
                 activeRoom: 'general',
                 joined: false,
@@ -109,6 +109,7 @@
                         this.socket.pokemon.emit('leaveRoom');
                     } else {
                         this.socket.pokemon.emit('joinRoom', {room: this.activeRoom, pokemon: {id: Math.ceil(Math.random() * 150 + 1), selectedMoves: [1,2,3,4]}, });
+                        this.socket.chat.emit('joinRoom', {room: this.activeRoom });
                     }
                 },
                 sendMessage() {
@@ -117,7 +118,7 @@
                         name: this.username,
                         text: this.text,
                     };
-                    this.socket.pokemon.emit('msgToServer', message);
+                    this.socket.chat.emit('msgToServer', message);
                     this.text = '';
                 }
                 },
@@ -134,26 +135,25 @@
                 this.socket.pokemon = io('http://localhost:3000/', 
                 {        transports: ['websocket', 'polling']            });
 
+                this.socket.chat = io('http://localhost:3000/chat', {transports: ['websocket','polling']})
+
                 //TODO: divide sockets pokemon and chat
-                this.socket.pokemon.on('msgToClient', (message) => {
-                    console.log(message);
+                this.socket.chat.on('msgToClient', (message) => {
+                    console.dir(message)
                     this.receivedMessage(message)
                 });
                 this.socket.pokemon.on('connect', () => {
                     this.toggleRoomMembership();
                 });
                 this.socket.pokemon.on('joinedRoom', (data) => {
-                    console.dir(data)
                     this.pokemons[data.room] = []
                     this.pokemons[data.room].push(data.user.pokemon)
                     this.id = data.user.userId
                    
                 });
                 this.socket.pokemon.on('newOpponent', (data) => {
-                    console.dir(data)
                     this.pokemons[data.room].push(data.user.pokemon)
-                    console.dir(this.pokemons[data.room])
-                    this.socket.pokemon.emit('previousPokemon', data);
+                    this.socket.pokemon.emit('previousPokemon');
                     this.ready = true
                 });
                 this.socket.pokemon.on('previousOpponent', (data) => {
@@ -171,7 +171,7 @@
     
     </script>
     <style>
-        ul li:first-child {
+        ul.pokemon-list li:first-child {
             color: red;
             font-weight: bold;
         }

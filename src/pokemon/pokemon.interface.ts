@@ -19,3 +19,15 @@ export interface Pokemon {
   types: [];
   weight: number;
 }
+
+export interface PokemonMove {
+  accuracy: number;
+  id: number;
+  pp: number;
+  power: number;
+  priority: number;
+  target: Record<string, unknown>;
+  type: Record<string, unknown>;
+  stat_changes: any[];
+  name: string;
+}

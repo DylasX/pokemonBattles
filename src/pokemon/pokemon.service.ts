@@ -2,7 +2,7 @@ import { Injectable, HttpService } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { map } from 'rxjs/operators';
-import { Pokemon } from './pokemon.interface';
+import { Pokemon, PokemonMove } from './pokemon.interface';
 
 @Injectable()
 export class PokemonService {
@@ -20,13 +20,13 @@ export class PokemonService {
       .toPromise();
   }
 
-  generateMoves(selectedMoves: number[]): any {
+  generateMoves(selectedMoves: number[]): Promise<any>[] {
     //TODO: Change this to allow user to choose moves
     //MOCK FUNCTION ABILITIES
     const urlMoves = `${this.configService.get('PUBLIC_API_URL')}/move/`;
     const moves = selectedMoves.map((el) => {
       return this.http
-        .get<any>(`${urlMoves}${el}/`)
+        .get<Promise<PokemonMove>>(`${urlMoves}${el}/`)
         .pipe(map((res: AxiosResponse) => res.data))
         .toPromise();
     });

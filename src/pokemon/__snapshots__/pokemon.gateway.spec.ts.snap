@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppController (e2e) should join room 1`] = `
+Object {
+  "room": "general",
+  "user": Object {
+    "pokemon": Object {
+      "abilities": Array [],
+      "base_experience": 1,
+      "forms": Array [],
+      "game_indices": Array [],
+      "height": 1,
+      "held_items": Array [],
+      "id": 1,
+      "image": "https://pokeres.bastionbot.org/images/pokemon/1.png",
+      "is_default": true,
+      "location_area_encounters": "x",
+      "moves": Array [
+        Array [
+          Object {
+            "accuracy": 1,
+            "id": 1,
+            "name": "testMove",
+            "power": 1,
+            "pp": 1,
+            "priority": 1,
+            "stat_changes": Array [],
+            "target": Object {},
+            "type": Object {},
+          },
+        ],
+      ],
+      "name": "x",
+      "order": 1,
+      "past_types": Array [],
+      "species": Object {},
+      "sprites": Object {},
+      "stats": Array [],
+      "types": Array [],
+      "weight": 1,
+    },
+  },
+}
+`;
