@@ -36,6 +36,7 @@
                     <li v-for="pokemon of pokemons[activeRoom]" style="list-style: none;">
                         <div>
                             <h2 style="text-transform: capitalize;" >{{ pokemon?.name }}</h2>
+                            <h4 style="text-transform: capitalize;" >{{ pokemon?.combat.hp }}</h4>
                             <img v-bind:src="pokemon?.image" width="150px" alt="" srcset="">
                             <ul style="display: flex;
                                 flex-direction: row;
@@ -112,6 +113,18 @@
                         this.socket.chat.emit('joinRoom', {room: this.activeRoom });
                     }
                 },
+                getCombatStats(){
+                    if(this.pokemons[this.activeRoom].length > 1){
+                        this.pokemons[this.activeRoom].map(pokemon => {
+                            pokemon.combat = {
+
+                            }
+                            pokemon.stats.forEach((el) => {
+                                pokemon.combat[el.stat.name] = el.base_stat
+                            })
+                        })
+                    }
+                },
                 sendMessage() {
                 if(this.validateInput()) {
                     const message = {
@@ -154,10 +167,12 @@
                 this.socket.pokemon.on('newOpponent', (data) => {
                     this.pokemons[data.room].push(data.user.pokemon)
                     this.socket.pokemon.emit('previousPokemon');
+                    this.getCombatStats()
                     this.ready = true
                 });
                 this.socket.pokemon.on('previousOpponent', (data) => {
                     this.pokemons[data.room].push(data.user.pokemon)
+                    this.getCombatStats()
                     this.ready = true
                 });
                 this.socket.pokemon.on('leftRoom', (client) => {
