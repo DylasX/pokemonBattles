@@ -18,15 +18,8 @@
         <section class="alerts">
             <alerts-component :items="alerts"></alerts-component>
         </section>
-        <section class="chat">
-            <h1 style="text-align: center;">Websockets Tester</h1>
-            <form>
-                <!-- <button type="submit" @click.prevent="sendChatMessage()">Send</button> -->
-            </form>
-            <!-- Tabs -->
-            <div class="tab-row" style="text-align: center;">
-                Status: {{ this.joined ? 'Joined' : 'NOT Joined' }} <button @click="toggleRoomMembership()">{{ this.joined ? 'Leave' : 'Join' }}</button>
-            </div>
+        <section class="pokemon">
+            <h1 style="text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/International_Pok%C3%A9mon_logo.svg/2560px-International_Pok%C3%A9mon_logo.svg.png" width="200px" alt="Pokemon"></h1>
             <p>
                 <ul style="display: flex;
                             flex-direction: row;
@@ -34,36 +27,50 @@
                             margin: 50px;
                             justify-content: space-evenly;" class="pokemon-list">
                     <li v-for="pokemon of pokemons[activeRoom]" style="list-style: none;">
-                        <div>
-                            <h2 style="text-transform: capitalize;" >{{ pokemon?.name }}</h2>
-                            <h4 style="text-transform: capitalize;" >{{ pokemon?.combat.hp }}</h4>
-                            <img v-bind:src="pokemon?.image" width="150px" alt="" srcset="">
-                            <ul style="display: flex;
-                                flex-direction: row;
-                                flex: 1;
-                                margin: 50px;
-                                justify-content: space-evenly;">
-                                <li v-for="pokemonIndex of pokemon.moves" style="list-style: none;">
-                                    <button  :disabled="isDisabled" v-bind:data-ability="pokemonIndex.name">{{pokemonIndex.name}}- PP: {{pokemonIndex.pp}}</button>
-                                </li>
-                            </ul>
+                        <div >
+                            <div style="background: #ebebeb;
+                            text-align: center;
+                            padding-left: 5px;
+                            padding-right: 5px;
+                            border-radius: 5px;
+                            border-color: black;
+                            border-style: double;
+                            margin-left: -35px;
+                            margin-bottom: 10px;">
+                                <p style="text-transform: capitalize;" >{{ pokemon?.name }}</p>
+                                <progress id="health" value="100" max="100"></progress>
+                            </div>
+                            <img v-bind:src="pokemon?.image" width="120vh" alt="" srcset="">
                         </div>
                     </li>
-                </ul>
-            </p>
-            <div class="card">
-                <div id="messages" class="card-block">
-                    <ul>
-                        <li v-for="message of messages">{{ message.name }}: {{ message.text }}</li>
                     </ul>
+                </p>
+            </section>
+            <section class="moves" style="display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: row;
+            margin-top: -135px;">
+                <ul style="display: flex;">
+                    <li v-for="pokemonIndex of pokemons[activeRoom][0]?.moves" style="list-style: none;">
+                        <button  :disabled="isDisabled" v-bind:data-ability="pokemonIndex.name">{{pokemonIndex.name}}</button>
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <div class="card">
+                    <div id="messages" class="card-block">
+                        <ul>
+                            <li v-for="message of messages">{{ message.name }}: {{ message.text }}</li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-            <br>
-            <label for="textarea">Message:</label>
-            <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
+                <br>
+                <label for="textarea">Message:</label>
+                <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
             <br>
             <button id="send" class="btn" @click.prevent="sendMessage">Send</button>
-            <!-- /Tabs -->
+            <button id="disconnectBtn" class="btn" @click.prevent="disconnectAll">disconnectAll</button>
         </section>
     </main>
     <script>
@@ -106,7 +113,7 @@
                     this.alerts.push(msg);
                 },
                 toggleRoomMembership() {
-                    if (this.joined) {
+                    if (this.joined && this.socket.pokemon.connected) {
                         this.socket.pokemon.emit('leaveRoom');
                     } else {
                         this.socket.pokemon.emit('joinRoom', {room: this.activeRoom, pokemon: {id: Math.ceil(Math.random() * 150 + 1), selectedMoves: [1,2,3,4]}, });
@@ -141,15 +148,16 @@
                 validateInput() {
                     return this.username.length > 0 && this.text.length > 0
                 },
+                disconnectAll(){
+                    this.socket.pokemon.emit('disconnectAll');
+                },
             },
             created() {
                 this.username = prompt('Enter your username:');
-
                 this.socket.pokemon = io('http://localhost:3000/', 
                 {        transports: ['websocket', 'polling']            });
 
                 this.socket.chat = io('http://localhost:3000/chat', {transports: ['websocket','polling']})
-
                 //TODO: divide sockets pokemon and chat
                 this.socket.chat.on('msgToClient', (message) => {
                     console.dir(message)
@@ -168,10 +176,12 @@
                     this.pokemons[data.room].push(data.user.pokemon)
                     this.socket.pokemon.emit('previousPokemon');
                     this.getCombatStats()
+                    this.pokemons[data.room][0].image = this.pokemons[data.room][0].image.replace('/normal','/back-normal')
                     this.ready = true
                 });
                 this.socket.pokemon.on('previousOpponent', (data) => {
                     this.pokemons[data.room].push(data.user.pokemon)
+                    this.pokemons[data.room][0].image = this.pokemons[data.room][0].image.replace('/normal','/back-normal')
                     this.getCombatStats()
                     this.ready = true
                 });
@@ -186,9 +196,18 @@
     
     </script>
     <style>
+        ul.pokemon-list li{
+            max-height: 250px;
+        }
         ul.pokemon-list li:first-child {
-            color: red;
-            font-weight: bold;
+            position: absolute;
+            bottom: 33%;
+            left: 35%;
+        }
+        ul.pokemon-list li:nth-child(2) {
+            position: absolute;
+            bottom: 43%;
+            left: 58%;
         }
         #messages{
             height:300px;

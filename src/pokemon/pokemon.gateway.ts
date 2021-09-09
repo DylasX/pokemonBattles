@@ -7,7 +7,6 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  WsResponse,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
@@ -35,7 +34,7 @@ export class PokemonGateway
     if (
       data.room &&
       data.pokemon &&
-      Object.keys(this.server.of('/').in(data.room).adapter.rooms).length < 3
+      Object.keys(this.server.of('/').in(data.room).adapter.sids).length < 3
     ) {
       client.join(data.room);
       client.room = data.room;
@@ -44,9 +43,7 @@ export class PokemonGateway
         const res = await this.pokemonService.getPokemon(
           data.pokemon?.id.toString(),
         );
-        res.image = `${this.configService.get('REPO_IMAGES')}${
-          data.pokemon.id
-        }.png`;
+        res.image = `${this.configService.get('REPO_IMAGES')}${res.name}.gif`;
         client.pokemon = res;
 
         //Get data abilities
@@ -81,6 +78,10 @@ export class PokemonGateway
     client.broadcast.to(client.room).emit('previousOpponent', payload);
   }
 
+  sleep(milliseconds) {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  }
+
   @SubscribeMessage('leaveRoom')
   handleRoomLeave(client: Socket) {
     this.server.to(client.room).emit('leftRoom', {
@@ -94,6 +95,15 @@ export class PokemonGateway
     this.logger.log('Init');
   }
 
+  @SubscribeMessage('disconnectAll')
+  disconnectAll(client: Socket) {
+    const clients = Object.values(this.server.of('/').connected);
+    clients.forEach((s: Socket) => {
+      s.disconnect();
+    });
+    this.server;
+  }
+
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.server.to(client.room).emit('leftRoom', {
@@ -101,6 +111,7 @@ export class PokemonGateway
       pokemon: client.pokemon,
       userId: client.id,
     });
+    client.leave();
   }
 
   handleConnection(client: Socket, ...args: any[]) {

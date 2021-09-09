@@ -1,3 +1,10 @@
+@media all and (max-width:1024px) {
+    html, body {
+      margin-left: 0;
+      padding-left: 0;
+    }
+}
+
 #messages{
     height:300px;
     overflow-y: scroll;
@@ -6,3 +13,11 @@
    #app {
     margin-top: 2rem;
    }
+
+.pokemon {
+    background-image: url('./images/battle.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 75vh;
+    height: 100vh;
+}
