@@ -28,14 +28,17 @@ export class PokemonGateway
 
   @SubscribeMessage('joinRoom')
   async handleRoomJoin(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket()
+    client: Socket & Partial<Record<any, any>>,
     @MessageBody() data: any,
   ) {
-    if (
-      data.room &&
-      data.pokemon &&
-      Object.keys(this.server.of('/').in(data.room).adapter.sids).length < 3
-    ) {
+    //just to access sids
+    const prviousData: any = this.server.of('/').in(data.room);
+    const clientsAdapter = Object.keys(
+      Object.fromEntries(prviousData.adapter.sids),
+    );
+
+    if (data.room && data.pokemon && clientsAdapter.length < 2) {
       client.join(data.room);
       client.room = data.room;
       try {
@@ -70,7 +73,7 @@ export class PokemonGateway
   }
 
   @SubscribeMessage('previousPokemon')
-  handlePreviousPokemon(client: Socket) {
+  handlePreviousPokemon(client: Socket & Partial<Record<string, string>>) {
     const payload = {
       room: client.room,
       user: { pokemon: client.pokemon, userId: client.id },
@@ -83,7 +86,7 @@ export class PokemonGateway
   }
 
   @SubscribeMessage('leaveRoom')
-  handleRoomLeave(client: Socket) {
+  handleRoomLeave(client: Socket & Partial<Record<string, string>>) {
     this.server.to(client.room).emit('leftRoom', {
       room: client.room,
       pokemon: client.pokemon,
@@ -96,22 +99,22 @@ export class PokemonGateway
   }
 
   @SubscribeMessage('disconnectAll')
-  disconnectAll(client: Socket) {
-    const clients = Object.values(this.server.of('/').connected);
+  disconnectAll(client: Socket & Partial<Record<string, string>>) {
+    const clients = Object.values(this.server.of('/'));
     clients.forEach((s: Socket) => {
       s.disconnect();
     });
     this.server;
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: Socket & Partial<Record<string, string>>) {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.server.to(client.room).emit('leftRoom', {
       room: client.room,
       pokemon: client.pokemon,
       userId: client.id,
     });
-    client.leave();
+    client.leave(client.room);
   }
 
   handleConnection(client: Socket, ...args: any[]) {

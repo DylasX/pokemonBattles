@@ -2,15 +2,15 @@ import {
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
-  WsResponse,
   ConnectedSocket,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 
-@WebSocketGateway({ namespace: 'chat', path: '/chat' })
-//@WebSocketGateway(81, { transports: ['websocket'] })
+@WebSocketGateway(3001, {
+  transports: ['websocket'],
+})
 export class ChatGateway {
   @WebSocketServer() server: Server;
 
@@ -22,9 +22,9 @@ export class ChatGateway {
 
   @SubscribeMessage('msgToServer')
   handleMessage(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: Socket & Partial<Record<string, string>>,
     @MessageBody() message: { name: string; text: string },
-  ): WsResponse<unknown> {
+  ): boolean {
     if (client.room) {
       this.logger.log('Sending messages');
       return this.server.to(client.room).emit('msgToClient', message);
@@ -33,11 +33,27 @@ export class ChatGateway {
 
   @SubscribeMessage('joinRoom')
   handleJoinRoom(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: Socket & Partial<Record<string, string>>,
     @MessageBody() data: { room: string },
-  ): void {
+  ) {
     this.logger.log(`Join ${client.id} to ${data.room}`);
     client.room = data.room;
     return client.join(data.room);
+  }
+
+  handleConnection(client: Socket, ...args: any[]) {
+    this.logger.log(`Client connected: ${client.id}`);
+  }
+
+  handleDisconnect(client: Socket) {
+    this.logger.log(`Client disconnected: ${client.id}`);
+  }
+
+  getRoom(client: Socket, index: number): Array<string> | string {
+    const rooms = Array.from(client.rooms);
+    if (index) {
+      return rooms[index];
+    }
+    return rooms;
   }
 }

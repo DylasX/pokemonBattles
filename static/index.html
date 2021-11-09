@@ -1,34 +1,38 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Websockets Client</title>
     <link href="/styles.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+        integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
     <link href="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/vue-simple-notify/dist/vue-simple-notify.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js" integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs" crossorigin="anonymous"></script>
 </head>
+
 <body>
     <main id="v-app">
         <section class="alerts">
             <alerts-component :items="alerts"></alerts-component>
         </section>
         <section class="pokemon">
-            <h1 style="text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/International_Pok%C3%A9mon_logo.svg/2560px-International_Pok%C3%A9mon_logo.svg.png" width="200px" alt="Pokemon"></h1>
+            <h1 style="text-align: center;"><img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/International_Pok%C3%A9mon_logo.svg/2560px-International_Pok%C3%A9mon_logo.svg.png"
+                    width="200px" alt="Pokemon"></h1>
             <p>
-                <ul style="display: flex;
+            <ul style="display: flex;
                             flex-direction: row;
                             flex: 1;
                             margin: 50px;
                             justify-content: space-evenly;" class="pokemon-list">
-                    <li v-for="pokemon of pokemons[activeRoom]" style="list-style: none;">
-                        <div >
-                            <div style="background: #ebebeb;
+                <li v-for="pokemon of pokemons[activeRoom]" style="list-style: none;">
+                    <div>
+                        <div style="background: #ebebeb;
                             text-align: center;
                             padding-left: 5px;
                             padding-right: 5px;
@@ -37,37 +41,38 @@
                             border-style: double;
                             margin-left: -35px;
                             margin-bottom: 10px;">
-                                <p style="text-transform: capitalize;" >{{ pokemon?.name }}</p>
-                                <progress id="health" value="100" max="100"></progress>
-                            </div>
-                            <img v-bind:src="pokemon?.image" width="120vh" alt="" srcset="">
+                            <p style="text-transform: capitalize;">{{ pokemon?.name }}</p>
+                            <progress id="health" value="100" max="100"></progress>
                         </div>
-                    </li>
-                    </ul>
-                </p>
-            </section>
-            <section class="moves" style="display: flex;
+                        <img v-bind:src="pokemon?.image" width="120vh" alt="" srcset="">
+                    </div>
+                </li>
+            </ul>
+            </p>
+        </section>
+        <section class="moves" style="display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: row;
             margin-top: -135px;">
-                <ul style="display: flex;">
-                    <li v-for="pokemonIndex of pokemons[activeRoom][0]?.moves" style="list-style: none;">
-                        <button  :disabled="isDisabled" v-bind:data-ability="pokemonIndex.name">{{pokemonIndex.name}}</button>
-                    </li>
-                </ul>
-            </section>
-            <section>
-                <div class="card">
-                    <div id="messages" class="card-block">
-                        <ul>
-                            <li v-for="message of messages">{{ message.name }}: {{ message.text }}</li>
-                        </ul>
-                    </div>
+            <ul style="display: flex;">
+                <li v-for="pokemonIndex of pokemons[activeRoom][0]?.moves" style="list-style: none;">
+                    <button :disabled="isDisabled"
+                        v-bind:data-ability="pokemonIndex.name">{{pokemonIndex.name}}</button>
+                </li>
+            </ul>
+        </section>
+        <section>
+            <div class="card">
+                <div id="messages" class="card-block">
+                    <ul>
+                        <li v-for="message of messages">{{ message.name }}: {{ message.text }}</li>
+                    </ul>
                 </div>
-                <br>
-                <label for="textarea">Message:</label>
-                <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
+            </div>
+            <br>
+            <label for="textarea">Message:</label>
+            <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
             <br>
             <button id="send" class="btn" @click.prevent="sendMessage">Send</button>
             <button id="disconnectBtn" class="btn" @click.prevent="disconnectAll">disconnectAll</button>
@@ -84,7 +89,7 @@
                 pokemons: {
                     general: [],
                 },
-                socket: { fight: null, chat:null },
+                socket: { fight: null, chat: null },
                 alerts: [],
                 activeRoom: 'general',
                 joined: false,
@@ -116,12 +121,12 @@
                     if (this.joined && this.socket.pokemon.connected) {
                         this.socket.pokemon.emit('leaveRoom');
                     } else {
-                        this.socket.pokemon.emit('joinRoom', {room: this.activeRoom, pokemon: {id: Math.ceil(Math.random() * 150 + 1), selectedMoves: [1,2,3,4]}, });
-                        this.socket.chat.emit('joinRoom', {room: this.activeRoom });
+                        this.socket.pokemon.emit('joinRoom', { room: this.activeRoom, pokemon: { id: Math.ceil(Math.random() * 150 + 1), selectedMoves: [1, 2, 3, 4] }, });
+                        this.socket.chat.emit('joinRoom', { room: this.activeRoom });
                     }
                 },
-                getCombatStats(){
-                    if(this.pokemons[this.activeRoom].length > 1){
+                getCombatStats() {
+                    if (this.pokemons[this.activeRoom].length > 1) {
                         this.pokemons[this.activeRoom].map(pokemon => {
                             pokemon.combat = {
 
@@ -133,14 +138,14 @@
                     }
                 },
                 sendMessage() {
-                if(this.validateInput()) {
-                    const message = {
-                        name: this.username,
-                        text: this.text,
-                    };
-                    this.socket.chat.emit('msgToServer', message);
-                    this.text = '';
-                }
+                    if (this.validateInput()) {
+                        const message = {
+                            name: this.username,
+                            text: this.text,
+                        };
+                        this.socket.chat.emit('msgToServer', message);
+                        this.text = '';
+                    }
                 },
                 receivedMessage(message) {
                     this.messages.push(message)
@@ -148,40 +153,44 @@
                 validateInput() {
                     return this.username.length > 0 && this.text.length > 0
                 },
-                disconnectAll(){
+                disconnectAll() {
                     this.socket.pokemon.emit('disconnectAll');
                 },
             },
             created() {
                 this.username = prompt('Enter your username:');
                 this.socket.pokemon = io('http://localhost:3000/', 
-                {        transports: ['websocket', 'polling']            });
+                 {        transports: ['websocket', 'polling']            }); 
 
-                this.socket.chat = io('http://localhost:3000/chat', {transports: ['websocket','polling']})
+                this.socket.chat = io('http://localhost:3001', { transports: ['websocket', 'polling'] })
                 //TODO: divide sockets pokemon and chat
                 this.socket.chat.on('msgToClient', (message) => {
                     console.dir(message)
                     this.receivedMessage(message)
                 });
+                this.socket.chat.on('connect', () => {
+                    this.socket.chat.emit('joinRoom', {room: 'general-chat'})
+                })
                 this.socket.pokemon.on('connect', () => {
                     this.toggleRoomMembership();
                 });
                 this.socket.pokemon.on('joinedRoom', (data) => {
+                    console.log(data)
                     this.pokemons[data.room] = []
                     this.pokemons[data.room].push(data.user.pokemon)
                     this.id = data.user.userId
-                   
+
                 });
                 this.socket.pokemon.on('newOpponent', (data) => {
                     this.pokemons[data.room].push(data.user.pokemon)
                     this.socket.pokemon.emit('previousPokemon');
                     this.getCombatStats()
-                    this.pokemons[data.room][0].image = this.pokemons[data.room][0].image.replace('/normal','/back-normal')
+                    this.pokemons[data.room][0].image = this.pokemons[data.room][0].image.replace('/normal', '/back-normal')
                     this.ready = true
                 });
                 this.socket.pokemon.on('previousOpponent', (data) => {
                     this.pokemons[data.room].push(data.user.pokemon)
-                    this.pokemons[data.room][0].image = this.pokemons[data.room][0].image.replace('/normal','/back-normal')
+                    this.pokemons[data.room][0].image = this.pokemons[data.room][0].image.replace('/normal', '/back-normal')
                     this.getCombatStats()
                     this.ready = true
                 });
@@ -193,26 +202,30 @@
 
             }
         });
-    
+
     </script>
     <style>
-        ul.pokemon-list li{
+        ul.pokemon-list li {
             max-height: 250px;
         }
+
         ul.pokemon-list li:first-child {
             position: absolute;
             bottom: 33%;
             left: 35%;
         }
+
         ul.pokemon-list li:nth-child(2) {
             position: absolute;
             bottom: 43%;
             left: 58%;
         }
-        #messages{
-            height:300px;
+
+        #messages {
+            height: 300px;
             overflow-y: scroll;
         }
     </style>
 </body>
+
 </html>

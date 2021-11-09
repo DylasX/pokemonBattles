@@ -1,9 +1,10 @@
-import { HttpModule, INestApplication } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../app.module';
 import { RedisIoAdapter } from '../adapters/redis.adapter';
 import * as io from 'socket.io-client';
 import { PokemonService } from '../pokemon/pokemon.service';
+import { HttpModule } from '@nestjs/axios';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;

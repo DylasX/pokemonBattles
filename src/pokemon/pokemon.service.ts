@@ -1,6 +1,7 @@
-import { Injectable, HttpService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs/operators';
 import { Pokemon, PokemonMove } from './pokemon.interface';
 
@@ -11,7 +12,7 @@ export class PokemonService {
     private configService: ConfigService,
   ) {}
 
-  getPokemon(id: string): Promise<Pokemon> {
+  getPokemon(id: string): any {
     return this.http
       .get<{ [data: string]: Pokemon }>(
         `${this.configService.get('PUBLIC_API_URL')}pokemon/${id}`,

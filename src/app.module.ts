@@ -1,7 +1,8 @@
-import { Module, HttpModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { PokemonModule } from './pokemon/pokemon.module';
 import { ChatModule } from './events/chat.module';
 import { ConfigModule } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
 import * as Joi from 'joi';
 
 @Module({
