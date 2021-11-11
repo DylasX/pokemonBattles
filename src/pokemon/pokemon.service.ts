@@ -21,7 +21,7 @@ export class PokemonService {
       .toPromise();
   }
 
-  generateMoves(selectedMoves: number[]): Promise<any>[] {
+  generateMoves(selectedMoves: number[] | string[]): Promise<any>[] {
     //TODO: Change this to allow user to choose moves
     //MOCK FUNCTION ABILITIES
     const urlMoves = `${this.configService.get('PUBLIC_API_URL')}/move/`;

@@ -50,9 +50,20 @@ export class PokemonGateway
         client.pokemon = res;
 
         //Get data abilities
-        client.pokemon.moves = await Promise.all(
-          this.pokemonService.generateMoves(data.pokemon.selectedMoves),
-        );
+        if (data.pokemon.selectedMoves) {
+          client.pokemon.moves = await Promise.all(
+            this.pokemonService.generateMoves(data.pokemon.selectedMoves),
+          );
+        } else {
+          client.pokemon.moves = await Promise.all(
+            this.pokemonService.generateMoves(
+              client.pokemon.moves
+                .sort(() => Math.random() - Math.random())
+                .slice(0, 4)
+                .map((e) => e.move.name),
+            ),
+          );
+        }
 
         client.broadcast.to(data.room).emit('newOpponent', {
           room: client.room,
@@ -92,19 +103,15 @@ export class PokemonGateway
       pokemon: client.pokemon,
       userId: client.id,
     });
+    client.disconnect(true);
+  }
+
+  disconnectAllSockets() {
+    this.server.disconnectSockets();
   }
 
   afterInit(server: Server) {
     this.logger.log('Init');
-  }
-
-  @SubscribeMessage('disconnectAll')
-  disconnectAll(client: Socket & Partial<Record<string, string>>) {
-    const clients = Object.values(this.server.of('/'));
-    clients.forEach((s: Socket) => {
-      s.disconnect();
-    });
-    this.server;
   }
 
   handleDisconnect(client: Socket & Partial<Record<string, string>>) {

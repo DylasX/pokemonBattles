@@ -75,7 +75,7 @@
             <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
             <br>
             <button id="send" class="btn" @click.prevent="sendMessage">Send</button>
-            <button id="disconnectBtn" class="btn" @click.prevent="disconnectAll">disconnectAll</button>
+            <button id="disconnectBtn" class="btn" @click.prevent="leave">Leave</button>
         </section>
     </main>
     <script>
@@ -121,7 +121,7 @@
                     if (this.joined && this.socket.pokemon.connected) {
                         this.socket.pokemon.emit('leaveRoom');
                     } else {
-                        this.socket.pokemon.emit('joinRoom', { room: this.activeRoom, pokemon: { id: Math.ceil(Math.random() * 150 + 1), selectedMoves: [1, 2, 3, 4] }, });
+                        this.socket.pokemon.emit('joinRoom', { room: this.activeRoom, pokemon: { id: Math.ceil(Math.random() * 150 + 1) }, });
                         this.socket.chat.emit('joinRoom', { room: this.activeRoom });
                     }
                 },
@@ -153,9 +153,9 @@
                 validateInput() {
                     return this.username.length > 0 && this.text.length > 0
                 },
-                disconnectAll() {
-                    this.socket.pokemon.emit('disconnectAll');
-                },
+                leave(){
+                    this.socket.pokemon.emit('leaveRoom');
+                }
             },
             created() {
                 this.username = prompt('Enter your username:');
@@ -175,7 +175,9 @@
                     this.toggleRoomMembership();
                 });
                 this.socket.pokemon.on('joinedRoom', (data) => {
-                    console.log(data)
+                    console.log(data.user.pokemon)
+                    data.user.pokemon.moves = data.user.pokemon.moves.map(move => {move.name = move.name.replaceAll('-',' ').toUpperCase(); return move});
+                    console.log(data.user.pokemon)
                     this.pokemons[data.room] = []
                     this.pokemons[data.room].push(data.user.pokemon)
                     this.id = data.user.userId
