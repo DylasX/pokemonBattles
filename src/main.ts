@@ -12,7 +12,7 @@ async function bootstrap() {
   app.set('trust proxy', 1);
   app.useWebSocketAdapter(new RedisIoAdapter(app));
   app.useStaticAssets(join(__dirname, '..', 'static'));
-  await app.listen(3000);
+  await app.listen(4000);
 }
 
 //bootstrap();
