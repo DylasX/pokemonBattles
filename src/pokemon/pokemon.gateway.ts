@@ -46,7 +46,9 @@ export class PokemonGateway
         const res = await this.pokemonService.getPokemon(
           data.pokemon?.id.toString(),
         );
-        res.image = `${this.configService.get('REPO_IMAGES')}${res.name}.gif`;
+        res.image = `${this.configService.get('REPO_IMAGES')}normal/${
+          res.name
+        }.gif`;
         client.pokemon = res;
 
         //Get data abilities

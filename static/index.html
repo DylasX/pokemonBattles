@@ -159,10 +159,10 @@
             },
             created() {
                 this.username = prompt('Enter your username:');
-                this.socket.pokemon = io('http://localhost:3000/', 
+                this.socket.pokemon = io('http://localhost:4000/', 
                  {        transports: ['websocket', 'polling']            }); 
 
-                this.socket.chat = io('http://localhost:3001', { transports: ['websocket', 'polling'] })
+                this.socket.chat = io('http://localhost:4001', { transports: ['websocket', 'polling'] })
                 //TODO: divide sockets pokemon and chat
                 this.socket.chat.on('msgToClient', (message) => {
                     console.dir(message)
