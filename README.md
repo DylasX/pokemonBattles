@@ -74,3 +74,7 @@ Nest is [MIT licensed](LICENSE).
 
 
 ![](https://github.com/DylasX/pokemonBattles/blob/master/websockets.gif)
+
+FRONT END HERE
+[REPO](https://github.com/DylasX/pokemonBattlesFront)
+
