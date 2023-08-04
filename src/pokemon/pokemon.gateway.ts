@@ -122,6 +122,7 @@ export class PokemonGateway
       userId: client.id,
     });
     client.leave(client.room);
+    this.disconnectAllSockets()
   }
 
   handleConnection(client: Socket, ...args: any[]) {
