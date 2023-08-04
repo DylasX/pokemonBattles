@@ -73,4 +73,4 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 Nest is [MIT licensed](LICENSE).
 
 
-![](https://github.com/DylasX/pokemonBattles/websockets.gif)
+![](https://github.com/DylasX/pokemonBattles/blob/master/websockets.gif)
