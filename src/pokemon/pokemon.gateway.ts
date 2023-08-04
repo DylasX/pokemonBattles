@@ -34,11 +34,9 @@ export class PokemonGateway
   ) {
     //just to access sids
     const prviousData: any = this.server.of('/').in(data.room);
-    const clientsAdapter = Object.keys(
-      Object.fromEntries(prviousData.adapter.sids),
-    );
+    const room = prviousData.adapter.sids?.size || 0;
 
-    if (data.room && data.pokemon && clientsAdapter.length < 2) {
+    if (data.room && data.pokemon && room < 2) {
       client.join(data.room);
       client.room = data.room;
       try {

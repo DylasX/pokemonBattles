@@ -9,8 +9,10 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: true,
   });
+  const redisIoAdapter = new RedisIoAdapter(app);
+  await redisIoAdapter.connectToRedis();
   app.set('trust proxy', 1);
-  app.useWebSocketAdapter(new RedisIoAdapter(app));
+  app.useWebSocketAdapter(redisIoAdapter);
   app.useStaticAssets(join(__dirname, '..', 'static'));
   await app.listen(4000);
 }
