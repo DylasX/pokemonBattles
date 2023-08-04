@@ -8,7 +8,7 @@ import {
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 
-@WebSocketGateway(3001, {
+@WebSocketGateway(4001, {
   transports: ['websocket'],
 })
 export class ChatGateway {
