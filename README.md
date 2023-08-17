@@ -1,80 +1,61 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
-</p>
+# Pokemon Battle Simulation Project using Nest.js, Redis, Sockets, and Docker
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Welcome to the Pokemon Battle Simulation project! This application simulates a turn-based Pokemon battle using the Nest.js framework, Redis for data storage and caching, sockets for real-time communication, and Docker for containerization.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Table of Contents
 
-## Description
+- [Pokemon Battle Simulation Project using Nest.js, Redis, Sockets, and Docker](#pokemon-battle-simulation-project-using-nestjs-redis-sockets-and-docker)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
+
+
+- Utilize Redis pub/sub storing battle data, improving performance.
+- Real-time updates using WebSockets to display battle progress to players.
+- Dockerized for easy deployment and scalability.
+
+## Prerequisites
+
+Make sure you have the following tools installed:
+
+- Node.js (v14 or higher)
+- Docker
+- Docker Compose
 
 ## Installation
 
-```bash
-$ npm install
-```
+1. Clone this repository:
 
-## Running the app
+   ```bash
+   git clone https://github.com/yourusername/pokemon-battle-simulation.git
+   cd pokemon-battle-simulation
+   ```
 
-```bash
-# development
-$ npm run start
+2. Install dependencies
+   ```bash
+   npm install
+   ```
 
-# watch mode
-$ npm run start:dev
+3. Configure .env
+   ```bash
+   PUBLIC_API_URL=https://pokeapi.co/api/v2/
+   REDIS_HOST=localhost
+   REDIS_PORT=6379
+   REPO_IMAGES=https://img.pokemondb.net/sprites/black-white/anim/
+   ```
 
-# production mode
-$ npm run start:prod
-```
+## Usage
 
-## Test
+1. Start the redis server and the Nest.js app
+    ```bash
+    docker-compose up -d
+    npm run start:dev
+    ```
 
-```bash
-# unit tests
-$ npm run test
+## Front end
+Can be found here [Front Application](https://github.com/DylasX/pokemonBattlesFront)
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
-
-
-![](https://github.com/DylasX/pokemonBattles/blob/master/websockets.gif)
-
-FRONT END HERE
-[REPO](https://github.com/DylasX/pokemonBattlesFront)
 
